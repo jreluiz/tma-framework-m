@@ -1,12 +1,12 @@
 from flask import Flask
 from flask import request
 from flask import send_file
+from pykafka import KafkaClient
 import json
 from jsonschema import Draft4Validator
 import logging
 import logging.config
 import os
-from kafka import SimpleProducer, KafkaClient
 
 app = Flask(__name__)
 
@@ -22,12 +22,14 @@ logger.debug('Schema loaded %s', tma_m_schema)
 validator = Draft4Validator(tma_m_schema)
 logger.info('Validator initialized %s', validator)
 
-#Connect Kafka client to Kafka pod
-kafka = KafkaClient('kafka-0.kafka-hs.default.svc.cluster.local:9093')
+# #Connect Kafka client to Kafka pod
+client = KafkaClient('localhost:9092')
+# client = KafkaClient('kafka-0.kafka-hs.default.svc.cluster.local:9093')
+#
+# # Incialize producer structure to send messages
 
-# Incialize producer structure to send messages
-producer = SimpleProducer(kafka)
-
+topic = client.topics['topic-monitor']
+producer = topic.get_sync_producer()
 
 @app.route('/monitor', methods=['POST'])
 def process_message():
@@ -45,7 +47,7 @@ def monitor_demo():
     logger.info('Demo Processing Request %s', input)
     result = validate_schema(input)
     logger.info('Demo Result %s', result)
-    return "Number of error is: " + result 
+    return f"Number of error is: {result}"
 
 
 
@@ -57,8 +59,9 @@ def landing_page(path):
 
 
 def validate_schema(input_msg):
+    logger.info('input_msg %s', input_msg)
     try:
-    # check if there are errors in json file and return the result
+        # check if there are errors in json file and return the result
         errors = [error.message for error in validator.iter_errors(input_msg)]
         if errors:
             response = "Number of errors: " + str(len(errors)) + "\n" + str(errors) + "\n"
@@ -67,7 +70,7 @@ def validate_schema(input_msg):
             # Convert dict into string. Kafka only accept messages at bytes or string format
             jd = bytes(json.dumps(input_msg),encoding = 'utf-8')
             # Sending message
-            producer.send_messages('topic-monitor', jd)
+            producer.produce(jd)
             return "0" + "\n"
     except Exception as e:
         logger.error('Error Code -1: %s', e)
