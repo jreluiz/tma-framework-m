@@ -34,6 +34,7 @@ import java.util.Arrays;
 @JsonPropertyOrder({
     "type",
     "descriptionId",
+    "metricId",
     "observations"
 })
 public class Data implements Serializable {
@@ -52,6 +53,13 @@ public class Data implements Serializable {
      */
     @JsonProperty("descriptionId")
     private long descriptionId = -10L;
+    /**
+    *
+    * (Required)
+    * <p>
+    */
+    @JsonProperty("metricId")
+    private long metricId = -10L;
     /**
      *
      * (Required)
@@ -85,6 +93,13 @@ public class Data implements Serializable {
     public Data(Data.Type type, long descriptionId, Observation... observations) {
         this.type = type;
         this.descriptionId = descriptionId;
+        this.observations.addAll(Arrays.asList(observations));
+    }
+    
+    public Data(Data.Type type, long descriptionId, long metricId, Observation... observations) {
+        this.type = type;
+        this.descriptionId = descriptionId;
+        this.metricId = metricId;
         this.observations.addAll(Arrays.asList(observations));
     }
 
@@ -122,6 +137,22 @@ public class Data implements Serializable {
     }
 
     /**
+    *
+    */
+    @JsonProperty("metricId")
+    public long getMetricId() {
+		return metricId;
+	}
+
+    /**
+    *
+    */
+    @JsonProperty("metricId")
+	public void setMetricId(long metricId) {
+		this.metricId = metricId;
+	}
+
+	/**
      *
      */
     @JsonProperty("observations")

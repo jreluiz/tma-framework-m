@@ -31,6 +31,7 @@ client = KafkaClient('localhost:9092')
 topic = client.topics['topic-monitor']
 producer = topic.get_sync_producer()
 
+
 @app.route('/monitor', methods=['POST'])
 def process_message():
     # load json file
@@ -50,12 +51,10 @@ def monitor_demo():
     return f"Number of error is: {result}"
 
 
-
 @app.route('/', defaults={'path': ''}, methods=['GET'])
 @app.route('/<path:path>', methods=['GET'])
 def landing_page(path):
     return send_file('index.html')
-
 
 
 def validate_schema(input_msg):
@@ -68,7 +67,7 @@ def validate_schema(input_msg):
             return response
         else:
             # Convert dict into string. Kafka only accept messages at bytes or string format
-            jd = bytes(json.dumps(input_msg),encoding = 'utf-8')
+            jd = bytes(json.dumps(input_msg), encoding='utf-8')
             # Sending message
             producer.produce(jd)
             return "0" + "\n"
@@ -95,4 +94,4 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     logger.info('Initializing  Monitor Server Python')
-    app.run(debug='True', host='0.0.0.0', port=5000)   
+    app.run(debug='True', host='0.0.0.0', port=5000)
