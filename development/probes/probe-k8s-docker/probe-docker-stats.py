@@ -1,13 +1,16 @@
 #!/usr/bin/python
 import json
 import subprocess
-
 import docker
 import sys
 from datetime import datetime
 import requests
-from tmalibrary.probes import *
 import time
+from communication import Communication
+from data import Data
+from message import Message
+from message import ComplexEncoder
+from observation import Observation
 
 
 def run(cmd):
@@ -49,13 +52,13 @@ def format(metrics, messageId):
     message = Message(probeId=101, resourceId=102, messageId=messageId, sentTime=int(time.time()), data=None)
 
     # add cpu metric
-    dt = Data(type="measurement", descriptionId=103, observations=None)
+    dt = Data(type="measurement", descriptionId=103, metricId=7, observations=None)
     obs = Observation(time=int(time.time()), value=metrics[0])
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
 
     # add memory metric
-    dt = Data(type="measurement", descriptionId=104, observations=None)
+    dt = Data(type="measurement", descriptionId=104, metricId=8, observations=None)
     obs = Observation(time=int(time.time()), value=metrics[1])
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
