@@ -26,15 +26,17 @@ def get_stats(container_name):
         bits = line.split("  ")
         bits = [bit for bit in bits if bit.strip() != ""]
         if len(bits) == 8:
+            # print("0", bits[0])
+            # print("1", bits[1])
+            # print("2", bits[2])
+            # print("3", bits[3].split("/")[1].strip().replace("MiB", ""))
+            # print("4", bits[4])
+            # print("5", bits[5])
+            # print("6", bits[6])
+            # print("7", bits[7])
             container_metrics = [
-                # "container ID": bits[0],
-                # "name": bits[1],
                 bits[2].strip().replace("%", ""),
-                # "memory usage": bits[3],
                 bits[4].strip().replace("%", "")
-                # "network i/o": bits[5],
-                # "block i/o": bits[6],
-                # "pids": bits[7]
             ]
     return container_metrics
 
@@ -52,13 +54,13 @@ def format(metrics, messageId):
     message = Message(probeId=101, resourceId=102, messageId=messageId, sentTime=int(time.time()), data=None)
 
     # add cpu metric
-    dt = Data(type="measurement", descriptionId=103, metricId=7, observations=None)
+    dt = Data(type="measurement", descriptionId=103, metricId=6, observations=None)
     obs = Observation(time=int(time.time()), value=metrics[0])
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
 
     # add memory metric
-    dt = Data(type="measurement", descriptionId=104, metricId=8, observations=None)
+    dt = Data(type="measurement", descriptionId=104, metricId=7, observations=None)
     obs = Observation(time=int(time.time()), value=metrics[1])
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
@@ -71,7 +73,7 @@ def format(metrics, messageId):
 def send_stat(metrics, url, communication, messageId):
     # format the stats from container
     stat_formatted = format(metrics, messageId)
-    print(stat_formatted)
+    print(f'---Sending message to monitor: {stat_formatted}')
 
     # url = 'http://0.0.0.0:5000/monitor'
     # response = communication.send_message(stat_formatted)
