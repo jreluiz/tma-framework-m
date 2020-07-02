@@ -71,12 +71,14 @@ def format(metrics, messageId):
 
 # send stat to API server
 def send_stat(metrics, url, communication, messageId):
-    # format the stats from container
-    stat_formatted = format(metrics, messageId)
-    print(f'---Sending message to monitor: {stat_formatted}')
 
-    # url = 'http://0.0.0.0:5000/monitor'
-    # response = communication.send_message(stat_formatted)
+    if metrics[0] > 0 or metrics[1] > 0:
+        # format the stats from container
+        stat_formatted = format(metrics, messageId)
+        print(f'---Sending message to monitor: {stat_formatted}')
+
+        url = 'http://0.0.0.0:5000/monitor'
+        response = communication.send_message(stat_formatted)
 
 
 # get stats from container
@@ -87,7 +89,7 @@ def get_container_stats(container_name, url, communication):
         send_stat(container_metrics, url, communication, messageId)
         messageId += 1
 
-        time.sleep(3)
+        time.sleep(25)
 
 
 if __name__ == "__main__":
