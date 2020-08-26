@@ -19,7 +19,11 @@ def run(cmd):
 
 
 def get_stats(container_name):
-    data = run(f"docker stats {container_name} --no-stream")
+    # try:
+    #     data = run(f"docker stats {container_name} --no-stream")
+    # except:
+    #     data = run(f"docker stats --no-stream")
+    data = run(f"docker stats --no-stream")
     container_metrics = []
     lines = data.decode('UTF-8').split("\n")
     for line in lines[1:]:
@@ -38,6 +42,11 @@ def get_stats(container_name):
                 bits[2].strip().replace("%", ""),
                 bits[4].strip().replace("%", "")
             ]
+    if len(container_metrics) == 0:
+        container_metrics = [
+            '0.00',
+            '0.00'
+        ]
     return container_metrics
 
 
@@ -55,13 +64,21 @@ def format(metrics, messageId):
 
     # add cpu metric
     dt = Data(type="measurement", descriptionId=103, metricId=6, observations=None)
-    obs = Observation(time=int(time.time()), value=metrics[0])
+    if metrics[0] == '0.00':
+        cpu_usage = float(0.00)
+    else:
+        cpu_usage = float(metrics[0]) / 100
+    obs = Observation(time=int(time.time()), value=cpu_usage)
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
 
     # add memory metric
     dt = Data(type="measurement", descriptionId=104, metricId=7, observations=None)
-    obs = Observation(time=int(time.time()), value=metrics[1])
+    if metrics[1] == '0.00':
+        memory_usage = float(0.00)
+    else:
+        memory_usage = float(metrics[1]) / 100
+    obs = Observation(time=int(time.time()), value=memory_usage)
     dt.add_observation(observation=obs)
     message.add_data(data=dt)
 
@@ -71,14 +88,13 @@ def format(metrics, messageId):
 
 # send stat to API server
 def send_stat(metrics, url, communication, messageId):
+    # if len(metrics) > 0 and metrics[0] != '0.00' and metrics[1] != '0.00':
+    # format the stats from container
+    stat_formatted = format(metrics, messageId)
+    print(f'---Sending message to monitor: {stat_formatted}')
 
-    if metrics[0] > 0 or metrics[1] > 0:
-        # format the stats from container
-        stat_formatted = format(metrics, messageId)
-        print(f'---Sending message to monitor: {stat_formatted}')
-
-        url = 'http://0.0.0.0:5000/monitor'
-        response = communication.send_message(stat_formatted)
+    url = 'http://0.0.0.0:5000/monitor'
+    response = communication.send_message(stat_formatted)
 
 
 # get stats from container
@@ -86,10 +102,11 @@ def get_container_stats(container_name, url, communication):
     messageId = 1
     while (True):
         container_metrics = get_stats(container_name)
+        print(container_metrics)
         send_stat(container_metrics, url, communication, messageId)
         messageId += 1
 
-        time.sleep(25)
+        time.sleep(14)
 
 
 if __name__ == "__main__":
